@@ -1,0 +1,185 @@
+{
+  "title": "Club Run Routes",
+  "dates": [{
+    "date": "2018-09-17T16:30:00.000Z",
+    "routes": [{
+        "dist": 10,
+        "cue": [{
+            "segment": "Club"
+          },
+          {
+            "segment": "Dalton"
+          },
+          {
+            "segment": "Ladies Mile"
+          },
+          {
+            "turn": "right",
+            "segment": "Spaanschemat"
+          },
+          {
+            "segment": "Engen Garage"
+          },
+          {
+            "segment": "Pick n Pay",
+            "meta": "Regroup"
+          },
+          {
+            "turn": "left",
+            "segment": "Constantia rd"
+          },
+          {
+            "turn": "left",
+            "segment": "Pagasvlei"
+          },
+          {
+            "turn": "right",
+            "segment": "Klein Constantia"
+          },
+          {
+            "turn": "left",
+            "segment": "Nova Constantia"
+          },
+          {
+            "meta": "Regroup"
+          },
+          {
+            "turn": "left",
+            "segment": "Spaanschemat"
+          },
+          {
+            "turn": "right",
+            "segment": "lane to Airlie"
+          },
+          {
+            "segment": "water",
+            "meta": "Regroup"
+          },
+          {
+            "segment": "Footbridge to Neva Cl"
+          },
+          {
+            "turn": "left",
+            "segment": "Welgelee"
+          },
+          {
+            "turn": "left",
+            "segment": "Firgrove"
+          },
+          {
+            "segment": "Club"
+          }
+        ]
+      }, {
+        "dist": 7,
+        "cue": [{
+            "segment": "Club"
+          },
+          {
+            "segment": "Owen"
+          },
+          {
+            "segment": "Kendal"
+          },
+          {
+            "turn": "left",
+            "segment": "Spaanschemat (past peddlers)"
+          },
+          {
+            "segment": "Klein Constantia"
+          },
+          {
+            "turn": "left",
+            "segment": "Welbeloond"
+          },
+          {
+            "meta": "Regroup"
+          },
+          {
+            "turn": "left",
+            "segment": "Spaanschemat"
+          },
+          {
+            "turn": "right",
+            "segment": "lane to Airlie"
+          },
+          {
+            "segment": "water",
+            "meta": "Regroup"
+          },
+          {
+            "segment": "Footbridge to Neva Cl"
+          },
+          {
+            "turn": "left",
+            "segment": "Welgelee"
+          },
+          {
+            "turn": "left",
+            "segment": "Firgrove"
+          },
+          {
+            "segment": "Club"
+          }
+        ]
+      },
+      {
+        "dist": 5,
+        "cue": [{
+            "segment": "Club"
+          },
+          {
+            "segment": "Edison"
+          },
+          {
+            "turn": "left",
+            "segment": "Firgrove"
+          },
+          {
+            "turn": "left",
+            "segment": "Howard"
+          },
+          {
+            "turn": "left",
+            "segent": "Newton"
+          },
+          {
+            "turn": "right",
+            "segment": "Owen"
+          },
+          {
+            "turn": "left",
+            "segment": "Kendal"
+          },
+          {
+            "turn": "left",
+            "segment": "Spaanschemat"
+          },
+          {
+            "turn": "right",
+            "segment": "Ladies Mile"
+          },
+          {
+            "meta": "Engen Garage",
+            "meta": "Water"
+          },
+          {
+            "meta": "Regroup"
+          },
+          {
+            "meta": "Cross at traffic lights to Purcell"
+          },
+          {
+            "segment": "Firgrove"
+          },
+          {
+            "segment": "Edison"
+          },
+          {
+            "segment": "Club"
+          }
+        ]
+      }
+    ]
+  }]
+}
