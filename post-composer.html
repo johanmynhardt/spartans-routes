@@ -92,8 +92,20 @@
         button {
             margin: 0.3em;
         }
+
+        button[disabled] {
+            color: #666;
+            background-color: #eee;
+        }
+
         .warn {
             background-color: orangered;
+        }
+
+        .primary {
+            color: white;
+            background-color: dodgerblue;
+            border: 1px solid white;
         }
     </style>
     <title>Spartan Routes</title>
@@ -125,7 +137,7 @@
         </div>
 
         <div>
-            <button data-action="getPostText">Get Text</button>
+            <button data-action="getPostText" class="js-button-get-text" disabled>Get Text</button>
         </div>
 
     </div>
@@ -248,6 +260,15 @@
 
       document.querySelector('div.js-cards-list').appendChild(cardNode);
     });
+
+    let btnGetText = document.querySelector('button.js-button-get-text');
+    if (cards.length > 0) {
+      btnGetText.classList.add('primary');
+      btnGetText.removeAttribute('disabled');
+    } else {
+      btnGetText.classList.remove('primary');
+      btnGetText.setAttribute('disabled', '');
+    }
   }
 
   function findUpwards(from, selector) {
