@@ -124,6 +124,10 @@
             <p></p>
         </div>
 
+        <div>
+            <button data-action="getPostText">Get Text</button>
+        </div>
+
     </div>
 
 
@@ -204,8 +208,12 @@
     return newNode;
   }
 
+  function nextIdFrom(col) {
+    return col.map(c => c.id).reduce((acc, next) => next > acc ? next : acc, -1) + 1;
+  }
+
   function newDate() {
-    let maxId = cards.map(c => c.id).reduce((acc, next) => next > acc ? next : acc, -1) + 1;
+    let maxId = nextIdFrom(cards);
     cards.push({
       id: maxId,
       date: new Date(),
@@ -225,8 +233,6 @@
     cards.forEach(card => {
       const cardNode = findTemplate('js-date-dialog');
       cardNode.setAttribute('data-card-id', card.id);
-      console.info("populating ", cardNode);
-      console.info("populating card from data: ", card);
       cardNode.querySelector('input[data-field=date]').valueAsDate = new Date(asYMD(card.date));
 
       // distances
@@ -261,11 +267,10 @@
     console.info('add distance requested: ', event);
     let cardId = Number(findUpwards(event.target, 'data-card-id').dataset.cardId);
     let card = cards.filter(c => c.id === cardId)[0];
-    card.distances.push({id: 0, distance: 0, link: 'https://'});
+    card.distances.push({id: nextIdFrom(card.distances), distance: 0, link: 'https://'});
   }
 
   function newNote(event) {
-    console.info('new note requested: ', event);
     event.target.remove();
 
     let jsNotes = findTemplate('js-notes');
@@ -293,14 +298,28 @@
       return (notes ? lines.concat(['', '** Additional Notes', '', notes]) : lines).join('\n');
   }
 
-  document.addEventListener('input', e => {
-    if (e.target.dataset.field === 'date') {
-      let dateDialog = findUpwards(e.target, `data-card-id`);
-      let cardId = dateDialog.attributes['data-card-id'].value;
+  function getPostText(event) {
+    window.alert(produceNote(cards, notes));
+  }
 
-      let d = new Date(e.target.value);
-      let card = cards.filter(c => c.id === Number(cardId))[0];
-      card.date = d;
+  document.addEventListener('input', e => {
+    console.info('input change: ', e);
+    let dateCard = findUpwards(e.target, `data-card-id`);
+
+    if (dateCard) {
+      let cardId = Number(dateCard.attributes['data-card-id'].value);
+      let card = cards.filter(c => c.id === cardId)[0];
+
+      if (e.target.dataset.field === 'date') {
+        card.date = new Date(e.target.value);
+      }
+
+      if (['link', 'distance'].indexOf(e.target.dataset.field) > -1) {
+        let dist = findUpwards(e.target, 'data-distance-id');
+        let distId = Number(dist.attributes['data-distance-id'].value);
+
+        card.distances.filter(d => d.id === distId)[0][e.target.dataset.field] = e.target.value;
+      }
     }
 
     if (e.target.dataset.field === 'notes') {
