@@ -66,6 +66,11 @@
             /* flex: 1; */
         }
 
+        .row {
+            display: flex;
+            flex-direction: row;
+        }
+
         .card {
             box-shadow: 0px 0px 7px 0px rgba(0, 0, 0, 0.4);
             padding: 1em;
@@ -85,50 +90,33 @@
 
         <h3 data-title>Title</h3>
 
-        <div>
+        <div class="js-cards-container">
+            <div class="js-cards-list">
 
-            <div class=".js-date-dialog card" data-display>
-                <div class="row">
-                    Select Date
-                    <input type="date"/>
-                </div>
-
-                <div class=".js-distance-container">
-                    <div class=".js-distances">
-                        <p class=".js-distance">
-                            Distance <input type="number"> Link <input type="text">
-                        </p>
-                    </div>
-
-                    <button onclick="addDistance(event)"> + </button>
-                </div>
-
-                <hr/>
-                <button onclick="addDate(event)"> +</button>
             </div>
-
-
+            <hr/>
+            <button onclick="newDate(event);">Add Date</button>
         </div>
 
         <div hidden data-templates>
-            <div class=".js-date-dialog card" data-display data-template>
+            <div class="js-date-dialog card" data-display data-template="js-date-dialog">
                 <div class="row">
                     Select Date
-                    <input type="date"/>
+                    <input data-field="date" type="date"/>
+                    <span class="flex"></span>
+
+                    <button data-action="removeDateDialog">X</button>
                 </div>
 
-                <div class=".js-distance-container">
-                    <div class=".js-distances">
-                        <p class=".js-distance">
-                            Distance <input type="number"> Link <input type="text">
+                <div class="js-distance-container">
+                    <div class="js-distances">
+                        <p class="js-distance" data-distance-id="" data-template="js-distance">
+                            Distance <input data-field="distance" type="number"> Link <input data-field="link" type="text">
                         </p>
                     </div>
 
-                    <button onclick="addDistance(event)"> + </button>
+                    <button data-action="addDistance">Add Distance</button>
                 </div>
-
-                <hr/>
-                <button onclick="addDate(event)"> +</button>
             </div>
         </div>
     </div>
@@ -153,25 +141,12 @@
 <script>
   let db = {};
 
+  let cards = [];
+
   let title = document.querySelector('[data-title]');
   let dates = document.querySelector('[data-dates]');
 
   title.innerText = 'Route Post Composer';
-
-
-  function addDate(e) {
-
-    console.info('parent: ', e.target.parentElement.parentElement.firstElementChild);
-
-    let dist = e.target.parentElement.parentElement.firstElementChild.cloneNode(true);
-    e.target.parentElement.parentElement.appendChild(dist);
-  }
-
-  function addDistance(e) {
-    console.info('parent: ', e.target.parentElement.firstElementChild.firstElementChild);
-    let distance = e.target.parentElement.firstElementChild.firstElementChild.cloneNode(true);
-    e.target.parentElement.firstElementChild.appendChild(distance);
-  }
 
 
   const dateString = date => {
@@ -181,6 +156,109 @@
 
     return `${dow} ${d.getDate()} ${month} ${d.getFullYear()} @ ${d.getHours()}:${d.getMinutes() <= 9 ? '0' : ''}${d.getMinutes()}`;
   };
+
+  function findTemplate(selector) {
+    if (!selector) {
+      alert('no selector provided');
+      return undefined;
+    }
+
+    let templates = document.querySelector('[data-templates]');
+    let template = templates.querySelector(`[data-template='${selector}']`);
+    let newNode = template.cloneNode(true);
+    newNode.removeAttribute('data-template');
+    return newNode;
+  }
+
+  function newDate() {
+    let maxId = cards.map(c => c.id).reduce((acc, next) => next > acc ? next : acc, -1) + 1;
+    cards.push({
+      id: maxId,
+      date: new Date(),
+      distances: []
+    });
+    render();
+  }
+
+  function asYMD(date) {
+    function lt10(i) {
+      return i < 10 ? `0${i}` : `${i}`;
+    }
+    return `${date.getFullYear()}-${lt10(date.getMonth()+1)}-${lt10(date.getDate())}`;
+  }
+
+  function render() {
+    const cardsList = document.querySelector('div.js-cards-list');
+    cardsList.innerHTML = '';
+    cards.forEach(card => {
+      const cardNode = findTemplate('js-date-dialog');
+      cardNode.setAttribute('data-card-id', card.id);
+      console.info("populating ", cardNode);
+      console.info("populating card from data: ", card);
+      cardNode.querySelector('input[data-field=date]').valueAsDate = new Date(asYMD(card.date));
+
+      // distances
+      cardNode.querySelector('div.js-distances').innerHTML = '';
+      card.distances.forEach(distance => {
+        const distNode = findTemplate('js-distance');
+        distNode.setAttribute('data-distance-id', distance.id);
+        distNode.querySelector(`[data-field='distance']`).value = distance.distance;
+        distNode.querySelector(`[data-field='link']`).value = distance.link;
+
+        cardNode.querySelector('div.js-distances').appendChild(distNode);
+      });
+
+      document.querySelector('div.js-cards-list').appendChild(cardNode);
+    });
+  }
+
+  function findUpwards(from, selector) {
+    if (from.attributes[selector]) {
+      return from;
+    } else {
+      return findUpwards(from.parentNode, selector);
+    }
+  }
+
+  function removeDateDialog(event) {
+    let removeId = Number(findUpwards(event.target, 'data-card-id').dataset.cardId);
+    cards = cards.filter(c => c.id !== removeId);
+  }
+
+  function addDistance(event) {
+    console.info('add distance requested: ', event);
+    let cardId = Number(findUpwards(event.target, 'data-card-id').dataset.cardId);
+    let card = cards.filter(c => c.id === cardId)[0];
+    card.distances.push({id: 0, distance: 0, link: 'https://'});
+  }
+
+  document.addEventListener('input', e => {
+    console.info('value changed: ', e);
+    if (e.target.dataset.field === 'date') {
+      let dateDialog = findUpwards(e.target, `data-card-id`);
+      let cardId = dateDialog.attributes['data-card-id'].value;
+
+      console.info('date changed for %s to %s', cardId, e.target.value);
+      let d = new Date(e.target.value);
+      console.info('filtering cards for id ', cardId);
+      let card = cards.filter(c => c.id === Number(cardId))[0];
+      card.date = d;
+
+    }
+  });
+
+  document.addEventListener('click', e => {
+    if (e.target.dataset.action) {
+      let fn = window[e.target.dataset.action];
+      if (!fn) {
+        console.error(`No function called '${e.target.dataset.action}' found.`);
+      } else {
+        fn(e);
+        render();
+      }
+    }
+  });
+
 
 </script>
 </body>
