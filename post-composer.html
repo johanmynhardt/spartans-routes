@@ -29,6 +29,17 @@
             font-family: monospace;
         }
 
+        button {
+            border: 1px solid #eee;
+            border-radius: 0.4em;
+            box-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
+        }
+
+        .close {
+            background-color: black;
+            color: white;
+        }
+
         .grid-container {
             display: flex;
             flex-direction: column;
@@ -75,6 +86,14 @@
             box-shadow: 0px 0px 7px 0px rgba(0, 0, 0, 0.4);
             padding: 1em;
             margin-bottom: 1em;
+            border-radius: 0.7em;
+        }
+
+        button {
+            margin: 0.3em;
+        }
+        .warn {
+            background-color: orangered;
         }
     </style>
     <title>Spartan Routes</title>
@@ -94,31 +113,17 @@
             <div class="js-cards-list">
 
             </div>
-            <hr/>
-            <button onclick="newDate(event);">Add Date</button>
-        </div>
-
-        <div hidden data-templates>
-            <div class="js-date-dialog card" data-display data-template="js-date-dialog">
-                <div class="row">
-                    Select Date
-                    <input data-field="date" type="date"/>
-                    <span class="flex"></span>
-
-                    <button data-action="removeDateDialog">X</button>
-                </div>
-
-                <div class="js-distance-container">
-                    <div class="js-distances">
-                        <p class="js-distance" data-distance-id="" data-template="js-distance">
-                            Distance <input data-field="distance" type="number"> Link <input data-field="link" type="text">
-                        </p>
-                    </div>
-
-                    <button data-action="addDistance">Add Distance</button>
-                </div>
+            <p></p>
+            <div class="row">
+                <button data-action="newDate">Add Date</button>
+                <button data-action="newNote">Add Note</button>
             </div>
         </div>
+
+        <div class="js-notes">
+            <p></p>
+        </div>
+
     </div>
 
 
@@ -128,33 +133,62 @@
 </div>
 
 <div hidden data-templates>
-    <div data-template class="card">
-        <h4><span data-template-dist>dist</span>km <span data-template-time></span></h4>
-        <div data-template-cue>cue</div>
+    <div class="js-date-dialog card" data-display data-template="js-date-dialog">
+        <div class="row">
+            <span class="flex"></span>
+
+            <button data-action="removeDateDialog" class="close">X</button>
+        </div>
+        <div class="row">
+            Select Date
+            <input data-field="date" type="date"/>
+        </div>
+
+        <div class="js-distance-container">
+            <div class="js-distances">
+                <p class="js-distance" data-distance-id="" data-template="js-distance">
+                    Distance <input data-field="distance" type="number"> Link <input data-field="link" type="text">
+                </p>
+            </div>
+
+            <button data-action="addDistance">Add Distance</button>
+        </div>
     </div>
 
-    <h3 data-template-date></h3>
+    <div data-template="js-notes">
+        <div class="card">
+            <h4>Additional Notes</h4>
+            <textarea style="resize:none;" data-field="notes" rows="10"></textarea>
+        </div>
+    </div>
 </div>
-
 
 </body>
 <script>
   let db = {};
 
   let cards = [];
+  let notes = '';
 
   let title = document.querySelector('[data-title]');
-  let dates = document.querySelector('[data-dates]');
 
   title.innerText = 'Route Post Composer';
 
 
-  const dateString = date => {
-    let d = new Date(date);
-    let dow = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][d.getDay()];
-    let month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][d.getMonth()];
+  const DateFormat = {
+    dow: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+    month: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+    monthFull: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
 
-    return `${dow} ${d.getDate()} ${month} ${d.getFullYear()} @ ${d.getHours()}:${d.getMinutes() <= 9 ? '0' : ''}${d.getMinutes()}`;
+    summary: (fd, ld) => `${fd.getDate()} ${DateFormat.month[fd.getMonth()]} - ${ld.getDate()} ${DateFormat.month[ld.getMonth()]} ${ld.getFullYear()}`,
+
+    dateString: date => {
+      let d = new Date(date);
+      let dow = DateFormat.dow[d.getDay()];
+      let month = DateFormat.month[d.getMonth()];
+
+      return `${dow} ${d.getDate()} ${month} ${d.getFullYear()} @ ${d.getHours()}:${d.getMinutes() <= 9 ? '0' : ''}${d.getMinutes()}`;
+    }
   };
 
   function findTemplate(selector) {
@@ -177,14 +211,12 @@
       date: new Date(),
       distances: []
     });
-    render();
   }
 
   function asYMD(date) {
-    function lt10(i) {
-      return i < 10 ? `0${i}` : `${i}`;
-    }
-    return `${date.getFullYear()}-${lt10(date.getMonth()+1)}-${lt10(date.getDate())}`;
+    return [date.getFullYear(), date.getMonth()+1, date.getDate()]
+      .map(i => i < 10 ? `0${i}` : `${i}`)
+      .join("-");
   }
 
   function render() {
@@ -232,18 +264,47 @@
     card.distances.push({id: 0, distance: 0, link: 'https://'});
   }
 
+  function newNote(event) {
+    console.info('new note requested: ', event);
+    event.target.remove();
+
+    let jsNotes = findTemplate('js-notes');
+    document.querySelector('div.js-notes').appendChild(jsNotes);
+  }
+
+  function produceNote(cards, notes) {
+    // find date range
+    let sortedCards = cards.sort((a, b) => Date.parse(a.date.toJSON()) > Date.parse(b.date.toJSON()) ? 0 : -1);
+    let firstCard = sortedCards[0];
+    let lastCard = sortedCards.reduce((acc, next) => next);
+
+    let dateSections = sortedCards
+      .map(card => ['',
+        `* ${DateFormat.dow[card.date.getDay()]} ${card.date.getDate()} ${DateFormat.monthFull[card.date.getMonth()]}`
+      ].concat(card.distances.map(dist => `  - ${dist.distance}km:${dist.link}`)));
+
+    let lines = [
+      `Routes for the week: ${DateFormat.summary(firstCard.date, lastCard.date)}`,
+      '',
+      '(Please click through to full post for all links)',
+      '']
+      .concat(dateSections.reduce((acc, next) => acc.concat(next)));
+
+      return (notes ? lines.concat(['', '** Additional Notes', '', notes]) : lines).join('\n');
+  }
+
   document.addEventListener('input', e => {
-    console.info('value changed: ', e);
     if (e.target.dataset.field === 'date') {
       let dateDialog = findUpwards(e.target, `data-card-id`);
       let cardId = dateDialog.attributes['data-card-id'].value;
 
-      console.info('date changed for %s to %s', cardId, e.target.value);
       let d = new Date(e.target.value);
-      console.info('filtering cards for id ', cardId);
       let card = cards.filter(c => c.id === Number(cardId))[0];
       card.date = d;
+    }
 
+    if (e.target.dataset.field === 'notes') {
+      notes = target.value;
     }
   });
 
